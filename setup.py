@@ -27,7 +27,7 @@ else:
     install_requires.extend(["transformers"])
 
 setup(
-    name="gpt_index",
+    name="llama_index",
     version=__version__,
     packages=find_packages(),
     description="Interface between LLMs and your data",
