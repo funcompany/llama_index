@@ -7,17 +7,13 @@ from typing import Any, Generator, Optional, Protocol, Tuple
 
 import openai
 from langchain import Cohere, LLMChain, OpenAI
+from langchain.base_language import BaseLanguageModel
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import AI21
-from langchain.schema import BaseLanguageModel
 
 from llama_index.constants import MAX_CHUNK_SIZE, NUM_OUTPUTS
 from llama_index.prompts.base import Prompt
-from llama_index.utils import (
-    ErrorToRetry,
-    globals_helper,
-    retry_on_exceptions_with_backoff,
-)
+from llama_index.utils import ErrorToRetry, globals_helper, retry_on_exceptions_with_backoff
 
 logger = logging.getLogger(__name__)
 
@@ -53,13 +49,9 @@ def _get_llm_metadata(llm: BaseLanguageModel) -> LLMMetadata:
         if llm.model_name == "gpt-4":
             return LLMMetadata(max_input_size=GPT4_CONTEXT_SIZE, num_output=max_tokens)
         elif llm.model_name == "gpt-4-32k":
-            return LLMMetadata(
-                max_input_size=GPT4_32K_CONTEXT_SIZE, num_output=max_tokens
-            )
+            return LLMMetadata(max_input_size=GPT4_32K_CONTEXT_SIZE, num_output=max_tokens)
         else:
-            logger.warn(
-                "Unknown max input size for %s, using defaults.", llm.model_name
-            )
+            logger.warn("Unknown max input size for %s, using defaults.", llm.model_name)
             return LLMMetadata()
     elif isinstance(llm, Cohere):
         max_tokens = llm.max_tokens or 2048
@@ -157,11 +149,9 @@ class LLMPredictor(BaseLLMPredictor):
 
     """
 
-    def __init__(
-        self, llm: Optional[BaseLanguageModel] = None, retry_on_throttling: bool = True
-    ) -> None:
+    def __init__(self, llm: Optional[BaseLanguageModel] = None, retry_on_throttling: bool = True) -> None:
         """Initialize params."""
-        self._llm = llm or OpenAI(temperature=0, model_name="text-davinci-003")
+        self._llm = llm or OpenAI(temperature=0, model="text-davinci-003")
         self.retry_on_throttling = retry_on_throttling
         self._total_tokens_used = 0
         self.flag = True
@@ -186,23 +176,21 @@ class LLMPredictor(BaseLLMPredictor):
         If retry_on_throttling is true, we will retry on rate limit errors.
 
         """
-        llm_chain = LLMChain(
-            prompt=prompt.get_langchain_prompt(llm=self._llm), llm=self._llm
-        )
+        llm_chain = LLMChain(prompt=prompt.get_langchain_prompt(llm=self._llm), llm=self._llm)
 
         # Note: we don't pass formatted_prompt to llm_chain.predict because
         # langchain does the same formatting under the hood
         full_prompt_args = prompt.get_full_format_args(prompt_args)
         if self.retry_on_throttling:
+            from openai.error import APIConnectionError, RateLimitError, ServiceUnavailableError, TryAgain
+
             llm_prediction = retry_on_exceptions_with_backoff(
                 lambda: llm_chain.predict(**full_prompt_args),
                 [
-                    ErrorToRetry(openai.error.RateLimitError),
-                    ErrorToRetry(openai.error.ServiceUnavailableError),
-                    ErrorToRetry(openai.error.TryAgain),
-                    ErrorToRetry(
-                        openai.error.APIConnectionError, lambda e: e.should_retry
-                    ),
+                    ErrorToRetry(RateLimitError),
+                    ErrorToRetry(ServiceUnavailableError),
+                    ErrorToRetry(TryAgain),
+                    ErrorToRetry(APIConnectionError, lambda e: e.should_retry),
                 ],
             )
         else:
@@ -278,9 +266,7 @@ class LLMPredictor(BaseLLMPredictor):
         If retry_on_throttling is true, we will retry on rate limit errors.
 
         """
-        llm_chain = LLMChain(
-            prompt=prompt.get_langchain_prompt(llm=self._llm), llm=self._llm
-        )
+        llm_chain = LLMChain(prompt=prompt.get_langchain_prompt(llm=self._llm), llm=self._llm)
 
         # Note: we don't pass formatted_prompt to llm_chain.predict because
         # langchain does the same formatting under the hood

@@ -6,14 +6,15 @@ from typing import Any, List, Optional, Union
 import openai
 from langchain import LLMChain
 from langchain.chat_models import ChatOpenAI
-from langchain.prompts.base import BasePromptTemplate
+from langchain.schema.prompt_template import BasePromptTemplate
 from langchain.prompts.chat import (
     BaseMessagePromptTemplate,
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
 )
 from langchain.prompts.prompt import PromptTemplate
-from langchain.schema import BaseLanguageModel, BaseMessage
+from langchain.schema import BaseMessage
+from langchain.base_language import BaseLanguageModel
 
 from llama_index.llm_predictor.base import LLMPredictor
 from llama_index.prompts.base import Prompt
@@ -49,7 +50,7 @@ class ChatGPTLLMPredictor(LLMPredictor):
     ) -> None:
         """Initialize params."""
         super().__init__(
-            llm=llm or ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"), **kwargs
+            llm=llm or ChatOpenAI(temperature=0, model="gpt-3.5-turbo"), **kwargs
         )
         self.prepend_messages = prepend_messages
 
@@ -82,14 +83,15 @@ class ChatGPTLLMPredictor(LLMPredictor):
         # langchain does the same formatting under the hood
         full_prompt_args = prompt.get_full_format_args(prompt_args)
         if self.retry_on_throttling:
+            from openai.error import RateLimitError, ServiceUnavailableError, TryAgain, APIConnectionError
             llm_prediction = retry_on_exceptions_with_backoff(
                 lambda: llm_chain.predict(**full_prompt_args),
                 [
-                    ErrorToRetry(openai.error.RateLimitError),
-                    ErrorToRetry(openai.error.ServiceUnavailableError),
-                    ErrorToRetry(openai.error.TryAgain),
+                    ErrorToRetry(RateLimitError),
+                    ErrorToRetry(ServiceUnavailableError),
+                    ErrorToRetry(TryAgain),
                     ErrorToRetry(
-                        openai.error.APIConnectionError, lambda e: e.should_retry
+                        APIConnectionError, lambda e: e.should_retry
                     ),
                 ],
             )
