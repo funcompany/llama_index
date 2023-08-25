@@ -30,8 +30,8 @@ else:
 setup(
     name="llama_index",
     version=__version__,
-    # packages=find_packages(),
-    packages=find_packages(include=["llama*"]),
+    packages=find_packages(),
+    # packages=find_packages(include=["llama*"]),
     description="Interface between LLMs and your data.",
     install_requires=install_requires,
     long_description=long_description,
