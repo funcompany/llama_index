@@ -4,8 +4,8 @@
 import logging
 from typing import Any, Generator, Tuple
 
-from gpt_index.llm_predictor.base import LLMPredictor
-from gpt_index.prompts.base import Prompt
+from llama_index.llm_predictor.base import LLMPredictor
+from llama_index.prompts.base import Prompt
 
 logger = logging.getLogger(__name__)
 

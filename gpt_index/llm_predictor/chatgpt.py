@@ -15,9 +15,9 @@ from langchain.prompts.chat import (
 from langchain.prompts.prompt import PromptTemplate
 from langchain.schema import BaseLanguageModel, BaseMessage
 
-from gpt_index.llm_predictor.base import LLMPredictor
-from gpt_index.prompts.base import Prompt
-from gpt_index.utils import ErrorToRetry, retry_on_exceptions_with_backoff
+from llama_index.llm_predictor.base import LLMPredictor
+from llama_index.prompts.base import Prompt
+from llama_index.utils import ErrorToRetry, retry_on_exceptions_with_backoff
 
 logger = logging.getLogger(__name__)
 

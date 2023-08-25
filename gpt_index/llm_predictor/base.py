@@ -11,9 +11,9 @@ from langchain.chat_models import ChatOpenAI
 from langchain.llms import AI21
 from langchain.schema import BaseLanguageModel
 
-from gpt_index.constants import MAX_CHUNK_SIZE, NUM_OUTPUTS
-from gpt_index.prompts.base import Prompt
-from gpt_index.utils import (
+from llama_index.constants import MAX_CHUNK_SIZE, NUM_OUTPUTS
+from llama_index.prompts.base import Prompt
+from llama_index.utils import (
     ErrorToRetry,
     globals_helper,
     retry_on_exceptions_with_backoff,
